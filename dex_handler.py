@@ -1,12 +1,12 @@
-from tenacity import retry, stop_after_attempt, wait_fixed
-import requests
-from config import *
+from tenacity import retry, stop_after_attempt, wait_fixed  # Ligne 1
+import requests                                             # Ligne 2
+from config import *                                        # Ligne 3
 
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def get_dex_data():
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))      # Ligne 5 (pas d'indentation)
+def get_dex_data():                                         # Ligne 6 (alignée avec le décorateur)
     try:
         response = requests.get(DEXSCREENER_API)
-        response.raise_for_status()  # Vérifie les erreurs HTTP
+        response.raise_for_status()
         return response.json().get('results', [])
     except Exception as e:
         print(f"Erreur API: {str(e)}")
