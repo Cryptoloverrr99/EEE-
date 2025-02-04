@@ -29,21 +29,11 @@ def format_alert(data):
 while True:
     try:
         new_pools = get_dex_data()
+        print(f"Found {len(new_pools)} pools from Dexscreener")
+        
         valid_pools = filter_valid_pools(new_pools)
+        print(f"Valid pools after filtering: {len(valid_pools)}")
         
         for pool in valid_pools:
-            address = pool['address']
-            if address not in processed_addresses:
-                freeze, mint = check_rug_status(address)
-                
-                if freeze == 'revoked' and mint == 'revoked':
-                    sol_data = get_solscan_meta(address)
-                    alert_message = format_alert(pool['data'])
-                    send_telegram_alert(alert_message)
-                    processed_addresses.add(address)
-        
-        time.sleep(180)  # 3 minutes
-        
-    except Exception as e:
-        print(f"Error: {e}")
-        time.sleep(60)
+            print(f"Processing pool: {pool['address']}")
+            # ... reste du code ...
