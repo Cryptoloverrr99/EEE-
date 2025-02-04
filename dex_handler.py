@@ -12,9 +12,14 @@ def get_dex_data():
     try:
         response = requests.get(DEXSCREENER_API)
         response.raise_for_status()
-        return response.json().get('results', [])
+        data = response.json()
+        
+        # Debug: Afficher les premières entrées
+        print("Raw API response sample:", data.get('pairs', [])[:1])
+        
+        return data.get('pairs', [])  # Clé correcte pour les pools
     except Exception as e:
-        print(f"Erreur API: {str(e)}")
+        print(f"Erreur API détaillée: {str(e)}")
         return []
 
 def filter_valid_pools(pools):
