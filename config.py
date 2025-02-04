@@ -1,4 +1,4 @@
-DEXSCREENER_API = "https://api.dexscreener.com/token-boosts/latest/v1?limit=100"
+DEXSCREENER_API = "https://api.dexscreener.com/token-boosts/latest/v1"
 SOLSCAN_API = "https://pro-api.solscan.io/v2.0/token/meta"
 RUGCHECK_API = "https://api.rugcheck.xyz/v1/stats/new_tokens"
 
