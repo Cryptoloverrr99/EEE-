@@ -33,13 +33,23 @@ def filter_valid_pools(pools):
     valid_pools = []
     for pool in pools:
         try:
-            # Vérification des clés obligatoires
-            required_keys = {
-                'baseToken': ['address'],
+            # Récupérer l'adresse depuis différentes sources
+            token_address = (
+                pool.get('baseToken', {}).get('address') 
+                or pool.get('quoteToken', {}).get('address')
+                or pool.get('pairAddress')  # Nouvelle source
+            )
+            
+            if not token_address:
+                raise ValueError("Aucune adresse de token trouvée")
+
+            # Vérification simplifiée des clés
+            required = {
                 'liquidity': ['usd'],
                 'volume': ['h24'],
                 'url': None
             }
+            
             
             for key, subkeys in required_keys.items():
                 if key not in pool:
