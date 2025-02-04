@@ -3,13 +3,14 @@ from config import *
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 def get_dex_data():
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+def get_dex_data():
     try:
         response = requests.get(DEXSCREENER_API)
-        if response.status_code == 200:
-            return response.json()  # La réponse est déjà une liste
-        return []
+        response.raise_for_status()  # Vérifie les erreurs HTTP
+        return response.json().get('results', [])
     except Exception as e:
-        print(f"Dexscreener API error: {str(e)}")
+        print(f"Erreur API: {str(e)}")
         return []
 
 def filter_valid_pools(pools):
