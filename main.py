@@ -21,10 +21,6 @@ def format_alert(data):
 - Website: {data.get('websites', [''])[0]}
 - Socials: {', '.join(data.get('socials', []))}
 
-🔒 <b>Security Status</b>
-- Freeze Authority: Revoked ❌
-- Mint Authority: Revoked ❌
-
 📊 <a href="{data.get('url', '#')}">DexScreener Chart</a>
 """
 
