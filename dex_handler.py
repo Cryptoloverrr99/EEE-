@@ -1,5 +1,6 @@
 import requests
 from config import *
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 def get_dex_data():
     try:
