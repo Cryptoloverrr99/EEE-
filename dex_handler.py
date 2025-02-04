@@ -14,10 +14,17 @@ def get_dex_data():
         response.raise_for_status()
         data = response.json()
         
-        # Debug: Afficher les premières entrées
-        print("Raw API response sample:", data.get('pairs', [])[:1])
+        # Debug: vérifier la structure des données
+        print("Structure des données reçues:", type(data), "Keys:", data.keys() if isinstance(data, dict) else "C'est une liste")
         
-        return data.get('pairs', [])  # Clé correcte pour les pools
+        # Gestion des deux formats de réponse possibles
+        if isinstance(data, list):
+            return data  # Format direct
+        elif isinstance(data, dict):
+            return data.get('pairs', [])  # Format avec clé 'pairs'
+        else:
+            return []
+            
     except Exception as e:
         print(f"Erreur API détaillée: {str(e)}")
         return []
