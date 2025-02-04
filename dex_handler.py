@@ -15,72 +15,75 @@ def filter_valid_pools(pools):
     valid_pools = []
     for index, pool in enumerate(pools):
         try:
-            # Vérification de la structure de base
-            if not isinstance(pool, dict):
-                print(f"Pool {index} n'est pas un dictionnaire valide")
+            # Vérification fondamentale de l'intégrité des données
+            if not pool or not isinstance(pool, dict):
+                print(f"Pool {index} invalide ou vide")
                 continue
 
-            # Extraction sécurisée de l'URL
-            url = pool.get('url')
-            if not url:
-                print(f"Pool {index} n'a pas d'URL")
+            # Gestion des valeurs None pour les clés critiques
+            chain_id = pool.get('chainId') or ''
+            url = pool.get('url') or ''
+            token_address = pool.get('tokenAddress') or ''
+
+            # Filtrage strict des pools non-Solana
+            if chain_id.lower() != 'solana':
+                print(f"Pool {index} ignoré (chaîne: {chain_id})")
                 continue
 
-            # Extraction du pairAddress depuis l'URL
+            # Extraction sécurisée du pairAddress
+            pair_address = url.split('/')[-1] if url else None
+            if not pair_address:
+                print(f"Pool {index} a une URL invalide")
+                continue
+
+            # Requête des détails avec timeout
             try:
-                pair_address = url.split('/')[-1]
-            except AttributeError:
-                print(f"Format d'URL invalide pour le pool {index}")
+                details_response = requests.get(
+                    f"https://api.dexscreener.com/latest/dex/pairs/solana/{pair_address}",
+                    timeout=10
+                )
+                if details_response.status_code != 200:
+                    continue
+            except requests.exceptions.RequestException as e:
+                print(f"Erreur réseau pour le pool {index}: {str(e)}")
                 continue
 
-            # Filtrage par chaîne Solana
-            if pool.get('chainId') != 'solana':
-                print(f"Pool {index} n'est pas sur Solana")
+            # Validation de la structure des données
+            pair_data = details_response.json().get('pair') or {}
+            if not pair_data:
+                print(f"Données manquantes pour le pool {index}")
                 continue
 
-            # Requête des détails du pool
-            details_url = f"https://api.dexscreener.com/latest/dex/pairs/solana/{pair_address}"
-            details_response = requests.get(details_url)
-            
-            if details_response.status_code != 200:
-                print(f"Échec de récupération des détails pour le pool {index}")
-                continue
-
-            pair_data = details_response.json().get('pair', {})
-            
-            # Conversion sécurisée des valeurs numériques
+            # Conversion robuste avec logging
             try:
-                market_cap = float(pair_data.get('marketCap', 0)) or 0
-                liquidity = float(pair_data.get('liquidity', {}).get('usd', 0)) or 0
-                volume = float(pair_data.get('volume', {}).get('h24', 0)) or 0
+                market_cap = float(pair_data.get('marketCap') or 0)
+                liquidity = float((pair_data.get('liquidity') or {}).get('usd') or 0)
+                volume = float((pair_data.get('volume') or {}).get('h24') or 0)
             except (TypeError, ValueError) as e:
                 print(f"Erreur de conversion pour le pool {index}: {str(e)}")
                 continue
 
-            # Extraction des liens avec valeurs par défaut
-            links = pool.get('links', [])
-            websites = [
-                link.get('url') 
-                for link in links 
-                if isinstance(link, dict) and link.get('label') == 'Website'
-            ] or ['']
+            # Extraction sécurisée des liens
+            links = pool.get('links') or []
+            websites = []
+            socials = []
             
-            socials = [
-                link.get('url') 
-                for link in links 
-                if isinstance(link, dict) and link.get('type') in ['twitter', 'telegram']
-            ] or ['']
+            for link in links:
+                if isinstance(link, dict):
+                    if link.get('label') == 'Website':
+                        websites.append(link.get('url') or '')
+                    elif link.get('type') in ['twitter', 'telegram']:
+                        socials.append(link.get('url') or '')
 
-            # Vérification finale des conditions
-            if all([
-                market_cap >= MIN_MARKET_CAP,
-                liquidity >= MIN_LIQUIDITY,
-                volume >= MIN_VOLUME,
-                any(websites),
-                any(socials)
-            ]):
+            # Validation finale
+            if (market_cap >= MIN_MARKET_CAP and
+                liquidity >= MIN_LIQUIDITY and
+                volume >= MIN_VOLUME and
+                len(websites) > 0 and
+                len(socials) > 0):
+                
                 valid_pools.append({
-                    'address': pool.get('tokenAddress'),
+                    'address': token_address,
                     'data': {
                         'marketCap': market_cap,
                         'liquidity': {'usd': liquidity},
@@ -92,8 +95,7 @@ def filter_valid_pools(pools):
                 })
 
         except Exception as e:
-            print(f"Erreur critique avec le pool {index}: {str(e)}")
+            print(f"Erreur non gérée (pool {index}): {str(e)}")
             continue
 
     return valid_pools
-                
