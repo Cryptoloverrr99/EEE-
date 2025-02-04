@@ -2,7 +2,6 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 import requests
 from config import *
 
-def get_dex_data():
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
 def get_dex_data():
     try:
