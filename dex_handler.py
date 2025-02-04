@@ -3,8 +3,15 @@ from config import *
 
 def get_dex_data():
     response = requests.get(DEXSCREENER_API)
-    return response.json()['data'] if response.status_code == 200 else []
-
+    if response.status_code != 200:
+        return []
+    
+    # Debug: Afficher la structure de la réponse
+    print("Dexscreener raw response:", response.json())
+    
+    # Nouvelle structure de réponse
+    return response.json().get('results', [])  # Adapté à la vraie structure
+    
 def filter_valid_pools(pools):
     valid_pools = []
     for pool in pools:
