@@ -30,11 +30,9 @@ def filter_valid_pools(pools):
                 print(f"Pool {index} ignoré (chaîne: {chain_id})")
                 continue
 
-            # Extraction sécurisée du pairAddress
-            pair_address = url.split('/')[-1] if url else None
-            if not pair_address:
-                print(f"Pool {index} a une URL invalide")
-                continue
+            def extract_pair_address(url):
+    parts = url.rstrip('/').split('/')
+    return parts[-1] if len(parts) > 1 else None
 
             # Requête des détails avec timeout
             try:
